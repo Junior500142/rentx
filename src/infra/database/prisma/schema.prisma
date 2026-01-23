@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Car {
+  id            String  @id @default(uuid())
+  license_plate String  @unique
+  available     Boolean @default(true)
+}
+
+model Rental {
+  id                   String   @id @default(uuid())
+  car_id               String
+  user_id              String
+  start_date           DateTime @default(now())
+  expected_return_date DateTime
+}
