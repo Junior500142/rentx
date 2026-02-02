@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx src/adapters/cli/main.ts",
+    "test": "vitest run",
+    "prisma:generate": "npx prisma generate --schema=src/infra/database/prisma/schema.prisma",
+    "prisma:migrate": "npx prisma migrate dev --schema=src/infra/database/prisma/schema.prisma"
   },
   "keywords": [],
   "author": "",
