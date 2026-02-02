@@ -1,22 +1,21 @@
 import "reflect-metadata";
 import { container } from "../../infra/container";
-import { TYPES } from "../../infra/container/types";
 import { CreateRentalUseCase } from "../../application/useCases/createRental/CreateRentalUseCase";
-import dayjs from "dayjs";
 
-async function run() {
-  const createRental = container.get<CreateRentalUseCase>(TYPES.CreateRentalUseCase);
+async function bootstrap() {
+    const createRentalUseCase = container.get(CreateRentalUseCase);
 
-  try {
-    const rental = await createRental.execute({
-      user_id: "user-001",
-      car_id: "car-001",
-      expected_return_date: dayjs().add(2, "days").toDate(),
-    });
-    console.log("Rental Created Successfully:", rental);
-  } catch (err) {
-    console.error("Error creating rental:", err.message);
-  }
+    try {
+        const rental = await createRentalUseCase.execute({
+            user_id: "user-id-exemplo",
+            car_id: "car-id-exemplo",
+            expected_return_date: new Date(Date.now() + 86400000 * 2),
+        });
+
+        console.log("✅ Aluguel criado com sucesso:", rental);
+    } catch (err: any) {
+        console.error("❌ Erro ao criar aluguel:", err.message);
+    }
 }
 
-run();
+bootstrap();

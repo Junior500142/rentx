@@ -6,11 +6,11 @@ import { ICarRepository } from "../../../domain/repositories/ICarRepository";
 import { Rental } from "../../../domain/entities/Rental";
 import { ICreateRentalDTO } from "./CreateRentalDTO";
 
-@injectable()
+@injectable() 
 export class CreateRentalUseCase {
   constructor(
-    @inject(TYPES.IRentalRepository) private rentalRepository: IRentalRepository,
-    @inject(TYPES.ICarRepository) private carRepository: ICarRepository
+    @inject("ICarRepository") private carRepository: ICarRepository,
+    @inject("IRentalRepository") private rentalRepository: IRentalRepository
   ) {}
 
   async execute({ user_id, car_id, expected_return_date }: ICreateRentalDTO): Promise<Rental> {
