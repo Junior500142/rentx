@@ -1,55 +1,45 @@
-import { inject, injectable } from "inversify";
-import dayjs from "dayjs";
+import { CreateRentalUseCase } from "./CreateRentalUseCase";
 import { ICarRepository } from "../../../domain/repositories/ICarRepository";
 import { IRentalRepository } from "../../../domain/repositories/IRentalRepository";
-import { Rental } from "../../../domain/entities/Rental";
-import { ICreateRentalDTO } from "./CreateRentalDTO";
 
-@injectable()
-export class CreateRentalUseCase {
-  constructor(
-    @inject("ICarRepository") private carRepository: ICarRepository,
-    @inject("IRentalRepository") private rentalRepository: IRentalRepository
-  ) {}
+describe("CreateRentalUseCase", () => {
+  let createRentalUseCase: CreateRentalUseCase;
+  let carRepository: jest.Mocked<ICarRepository>;
+  let rentalRepository: jest.Mocked<IRentalRepository>;
 
-  async execute({
-    user_id,
-    car_id,
-    expected_return_date,
-  }: ICreateRentalDTO): Promise<Rental> {
-    const minimumHour = 24;
+  beforeEach(() => {
+    carRepository = {
+      updateAvailability: jest.fn(),
+      findById: jest.fn(),
+    } as any;
 
-    const carUnavailable =
-      await this.rentalRepository.findOpenRentalByCar(car_id);
+    rentalRepository = {
+      findOpenRentalByCar: jest.fn(),
+      findOpenRentalByUser: jest.fn(),
+      create: jest.fn(),
+    } as any;
 
-    if (carUnavailable) {
-      throw new Error("Car is unavailable");
-    }
-
-    const rentalOpenToUser =
-      await this.rentalRepository.findOpenRentalByUser(user_id);
-
-    if (rentalOpenToUser) {
-      throw new Error("There's a rental in progress for user!");
-    }
-
-    const dateNow = new Date();
-    const compareTime = dayjs(expected_return_date).diff(dateNow, "hours");
-
-    if (compareTime < minimumHour) {
-      throw new Error("Invalid return time!");
-    }
-
-    const rental = new Rental(
-      crypto.randomUUID(),
-      car_id,
-      user_id,
-      expected_return_date
+    createRentalUseCase = new CreateRentalUseCase(
+      carRepository,
+      rentalRepository
     );
+  });
 
-    await this.rentalRepository.create(rental);
-    await this.carRepository.updateAvailability(car_id, false);
+  it("should be able to create a new rental", async () => {
+    rentalRepository.findOpenRentalByCar.mockResolvedValue(null);
+    rentalRepository.findOpenRentalByUser.mockResolvedValue(null);
 
-    return rental;
-  }
-}
+    const rental = await createRentalUseCase.execute({
+      user_id: "user-123",
+      car_id: "car-123",
+      expected_return_date: new Date(Date.now() + 1000 * 60 * 60 * 24),
+    });
+
+    expect(rental).toHaveProperty("id");
+    expect(rentalRepository.create).toHaveBeenCalled();
+    expect(carRepository.updateAvailability).toHaveBeenCalledWith(
+      "car-123",
+      false
+    );
+  });
+});
