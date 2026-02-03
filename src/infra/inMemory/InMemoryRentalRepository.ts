@@ -6,16 +6,24 @@ import { Rental } from "../../../domain/entities/Rental";
 export class InMemoryRentalRepository implements IRentalRepository {
   rentals: Rental[] = [];
 
-  async findOpenRentalByCar(car_id: string): Promise<Rental | null> {
-    return this.rentals.find((rental) => rental.car_id === car_id && !rental.end_date) || null;
+  async findOpenRentalByCar(carId: string): Promise<Rental | null> {
+    return (
+      this.rentals.find(
+        (rental) => rental.carId === carId && !rental.endDate
+      ) || null
+    );
   }
 
-  async findOpenRentalByUser(user_id: string): Promise<Rental | null> {
-    return this.rentals.find((rental) => rental.user_id === user_id && !rental.end_date) || null;
+  async findOpenRentalByUser(userId: string): Promise<Rental | null> {
+    return (
+      this.rentals.find(
+        (rental) => rental.userId === userId && !rental.endDate
+      ) || null
+    );
   }
 
-  async create(data: Rental): Promise<Rental> {
-    this.rentals.push(data);
-    return data;
+  async create(rental: Rental): Promise<Rental> {
+    this.rentals.push(rental);
+    return rental;
   }
 }

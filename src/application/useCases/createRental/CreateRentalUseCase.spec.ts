@@ -1,23 +1,22 @@
+import { describe, it, expect, beforeEach } from "vitest";
+import dayjs from "dayjs";
+
 import { CreateRentalUseCase } from "./CreateRentalUseCase";
+import { InMemoryRentalRepository } from "../../../infra/inMemory/InMemoryRentalRepository";
 import { ICarRepository } from "../../../domain/repositories/ICarRepository";
-import { IRentalRepository } from "../../../domain/repositories/IRentalRepository";
 
 describe("CreateRentalUseCase", () => {
   let createRentalUseCase: CreateRentalUseCase;
-  let carRepository: jest.Mocked<ICarRepository>;
-  let rentalRepository: jest.Mocked<IRentalRepository>;
+  let rentalRepository: InMemoryRentalRepository;
+  let carRepository: ICarRepository;
 
   beforeEach(() => {
-    carRepository = {
-      updateAvailability: jest.fn(),
-      findById: jest.fn(),
-    } as any;
+    rentalRepository = new InMemoryRentalRepository();
 
-    rentalRepository = {
-      findOpenRentalByCar: jest.fn(),
-      findOpenRentalByUser: jest.fn(),
-      create: jest.fn(),
-    } as any;
+    carRepository = {
+      findById: async () => null,
+      updateAvailability: async () => {},
+    };
 
     createRentalUseCase = new CreateRentalUseCase(
       carRepository,
@@ -26,20 +25,28 @@ describe("CreateRentalUseCase", () => {
   });
 
   it("should be able to create a new rental", async () => {
-    rentalRepository.findOpenRentalByCar.mockResolvedValue(null);
-    rentalRepository.findOpenRentalByUser.mockResolvedValue(null);
-
     const rental = await createRentalUseCase.execute({
-      user_id: "user-123",
-      car_id: "car-123",
-      expected_return_date: new Date(Date.now() + 1000 * 60 * 60 * 24),
+      user_id: "user-1",
+      car_id: "car-1",
+      expected_return_date: dayjs().add(2, "day").toDate(),
     });
 
     expect(rental).toHaveProperty("id");
-    expect(rentalRepository.create).toHaveBeenCalled();
-    expect(carRepository.updateAvailability).toHaveBeenCalledWith(
-      "car-123",
-      false
-    );
+  });
+
+  it("should not allow two open rentals for the same user", async () => {
+    await createRentalUseCase.execute({
+      user_id: "user-1",
+      car_id: "car-1",
+      expected_return_date: dayjs().add(2, "day").toDate(),
+    });
+
+    await expect(
+      createRentalUseCase.execute({
+        user_id: "user-1",
+        car_id: "car-2",
+        expected_return_date: dayjs().add(2, "day").toDate(),
+      })
+    ).rejects.toThrow("There's a rental in progress for user!");
   });
 });

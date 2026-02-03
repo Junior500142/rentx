@@ -15,16 +15,18 @@
     "schema": "src/infra/database/prisma/schema.prisma"
   },
   "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "better-sqlite3": "^12.6.2",
     "dayjs": "^1.11.19",
     "inversify": "^7.11.0",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
+    "@types/node": "^22.14.0",
     "prisma": "^7.3.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "@types/node": "^22.14.0",
     "vitest": "^4.0.18"
   }
 }
