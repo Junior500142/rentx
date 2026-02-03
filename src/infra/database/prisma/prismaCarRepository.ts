@@ -2,27 +2,20 @@ import { injectable } from "inversify";
 import { PrismaClient } from "@prisma/client";
 import { ICarRepository } from "../../../domain/repositories/ICarRepository";
 
+const prisma = new PrismaClient();
+
 @injectable()
 export class PrismaCarRepository implements ICarRepository {
-  private prisma: PrismaClient;
-
-  constructor() {
-    this.prisma = new PrismaClient({
-      datasourceUrl: "file:./dev.db",
-    });
-  }
 
   async findById(id: string): Promise<any> {
-    const car = await this.prisma.car.findUnique({
+    return prisma.car.findUnique({
       where: { id },
     });
-    return car;
   }
 
   async findByLicensePlate(license_plate: string): Promise<any> {
-    const car = await this.prisma.car.findFirst({
+    return prisma.car.findFirst({
       where: { license_plate },
     });
-    return car;
   }
 }
