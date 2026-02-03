@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx src/adapters/cli/main.ts",
+    "postinstall": "npm run prisma:generate",
     "test": "vitest run",
     "prisma:generate": "npx prisma generate --schema=src/infra/database/prisma/schema.prisma",
     "prisma:migrate": "npx prisma migrate dev --schema=src/infra/database/prisma/schema.prisma"
@@ -13,17 +14,20 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "prisma": {
+    "schema": "src/infra/database/prisma/schema.prisma"
+  },
   "dependencies": {
     "@prisma/client": "^7.3.0",
     "dayjs": "^1.11.19",
     "inversify": "^7.11.0",
     "reflect-metadata": "^0.2.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@types/node": "^25.0.10",
     "prisma": "^7.3.0",
-    "tsx": "^4.21.0",
     "vitest": "^4.0.18"
   }
 }
