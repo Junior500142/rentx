@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Car {
@@ -13,9 +14,10 @@ model Car {
 }
 
 model Rental {
-  id                   String   @id @default(uuid())
+  id                   String    @id @default(uuid())
   car_id               String
   user_id              String
-  start_date           DateTime @default(now())
+  start_date           DateTime  @default(now())
   expected_return_date DateTime
+  end_date             DateTime?
 }

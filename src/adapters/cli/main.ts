@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { container } from "../../infra/container";
-import { CreateRentalUseCase } from "../../application/useCases/createRental/CreateRentalUseCase";
+import { CreateRentalUseCase } from "../../application/useCases/createRental/createRentalUseCase";
 
 async function bootstrap() {
     const createRentalUseCase = container.get(CreateRentalUseCase);
