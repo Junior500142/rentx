@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/adapters/cli/main.ts",
+    "dev": "tsx seed.ts && tsx src/adapters/cli/main.ts",
     "postinstall": "npm run prisma:generate",
     "test": "vitest run",
     "prisma:generate": "prisma generate --schema=src/infra/database/prisma/schema.prisma",
@@ -15,9 +15,7 @@
     "schema": "src/infra/database/prisma/schema.prisma"
   },
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.3.0",
     "@prisma/client": "^6.19.2",
-    "better-sqlite3": "^12.6.2",
     "dayjs": "^1.11.19",
     "inversify": "^7.11.0",
     "reflect-metadata": "^0.2.2"
