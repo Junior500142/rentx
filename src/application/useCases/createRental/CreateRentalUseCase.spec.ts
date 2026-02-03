@@ -1,46 +1,55 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { CreateRentalUseCase } from "./CreateRentalUseCase";
-import { InMemoryRentalRepository } from "../../../infra/database/inMemory/InMemoryRentalRepository";
-import { ICarRepository } from "../../../domain/repositories/ICarRepository";
+import { inject, injectable } from "inversify";
 import dayjs from "dayjs";
+import { ICarRepository } from "../../../domain/repositories/ICarRepository";
+import { IRentalRepository } from "../../../domain/repositories/IRentalRepository";
+import { Rental } from "../../../domain/entities/Rental";
+import { ICreateRentalDTO } from "./CreateRentalDTO";
 
-describe("Create Rental", () => {
-  let createRentalUseCase: CreateRentalUseCase;
-  let inMemoryRentalRepository: InMemoryRentalRepository;
-  let mockCarRepository: ICarRepository;
+@injectable()
+export class CreateRentalUseCase {
+  constructor(
+    @inject("ICarRepository") private carRepository: ICarRepository,
+    @inject("IRentalRepository") private rentalRepository: IRentalRepository
+  ) {}
 
-  beforeEach(() => {
-    inMemoryRentalRepository = new InMemoryRentalRepository();
-    mockCarRepository = {
-      findById: async () => null,
-      updateAvailability: async () => {},
-    };
-    createRentalUseCase = new CreateRentalUseCase(inMemoryRentalRepository, mockCarRepository);
-  });
+  async execute({
+    user_id,
+    car_id,
+    expected_return_date,
+  }: ICreateRentalDTO): Promise<Rental> {
+    const minimumHour = 24;
 
-  it("should be able to create a new rental", async () => {
-    const rental = await createRentalUseCase.execute({
-      user_id: "12345",
-      car_id: "121212",
-      expected_return_date: dayjs().add(1, "day").toDate(),
-    });
+    const carUnavailable =
+      await this.rentalRepository.findOpenRentalByCar(car_id);
 
-    expect(rental).toHaveProperty("id");
-  });
+    if (carUnavailable) {
+      throw new Error("Car is unavailable");
+    }
 
-  it("should not be able to create a new rental if there is another open to the same user", async () => {
-    await createRentalUseCase.execute({
-      user_id: "12345",
-      car_id: "121212",
-      expected_return_date: dayjs().add(1, "day").toDate(),
-    });
+    const rentalOpenToUser =
+      await this.rentalRepository.findOpenRentalByUser(user_id);
 
-    await expect(
-      createRentalUseCase.execute({
-        user_id: "12345",
-        car_id: "321",
-        expected_return_date: dayjs().add(1, "day").toDate(),
-      })
-    ).rejects.toEqual(new Error("There's a rental in progress for user!"));
-  });
-});
+    if (rentalOpenToUser) {
+      throw new Error("There's a rental in progress for user!");
+    }
+
+    const dateNow = new Date();
+    const compareTime = dayjs(expected_return_date).diff(dateNow, "hours");
+
+    if (compareTime < minimumHour) {
+      throw new Error("Invalid return time!");
+    }
+
+    const rental = new Rental(
+      crypto.randomUUID(),
+      car_id,
+      user_id,
+      expected_return_date
+    );
+
+    await this.rentalRepository.create(rental);
+    await this.carRepository.updateAvailability(car_id, false);
+
+    return rental;
+  }
+}
